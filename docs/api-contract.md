@@ -1,5 +1,45 @@
 # API contract
 
+## Search posts
+
+**Endpoint:** `GET /search?q=<non-empty query>&limit=<1..20>`
+
+The endpoint searches the seeded posts using an in-memory encoded index.
+
+### Request
+
+Query parameters:
+
+- `q` — required, non-empty search text. Whitespace-only values are rejected.
+- `limit` — optional result count from `1` through `20`; defaults to `10`.
+
+### Successful response
+
+**Status:** `200 OK`
+
+```json
+{
+  "query": "cosine search",
+  "results": [
+    {
+      "post_id": 3,
+      "user_id": 2,
+      "content": "just shipped a cosine similarity search, feels great",
+      "score": 0.5773502691896258
+    }
+  ]
+}
+```
+
+Results contain at most `limit` posts and are ordered by descending
+`score`. Equal scores are ordered by ascending `post_id`.
+
+### Validation and error cases
+
+- `422 Unprocessable Entity`: `q` is missing or empty after trimming.
+- `422 Unprocessable Entity`: `limit` is less than `1`, greater than `20`, or
+  is not an integer.
+
 ## Create a post
 
 **Future endpoint:** `POST /posts`

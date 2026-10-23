@@ -10,7 +10,8 @@ What the instructor provides (this starter):
 - `scripts/seed_db.py` — 5-10 synthetic users/posts
 - `tests/test_health.py` — test skeleton
 
-What it does **not** provide: the feed, ranking, ML models, search. Those are the team's work, in the following weeks.
+Search is implemented as a small in-memory search index over the seeded posts.
+The feed, ranking, ML models, and CRUD endpoints remain future work.
 
 ## Running it
 
@@ -23,6 +24,19 @@ curl localhost:8000/health
 python scripts/seed_db.py
 pytest
 ```
+
+## Search
+
+`GET /search?q=<non-empty query>&limit=<1..20>` searches the posts loaded from
+SQLite at application startup. The lifespan in `app/main.py` reads posts through
+`PostRepository`, encodes them through the encoder adapter, and builds an
+in-memory index used by the application service. Retrieval computes cosine
+similarity and applies the deterministic `post_id` tie-breaker in application
+code.
+
+New posts are not yet implemented. When post creation is added, it should encode
+the new post through the same adapter and refresh or replace the in-memory index
+so it becomes searchable without requiring a process restart.
 
 ## Milestones (see masterplan.md for full details)
 
