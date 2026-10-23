@@ -21,16 +21,43 @@ class RetrievalResult:
     score: float
 
 
-def _cosine_similarity(left: Sequence[float], right: Sequence[float]) -> float:
-    if len(left) != len(right):
-        raise ValueError("vectors must have equal dimensions")
+def cosine_similarity(
+    query_vector: Sequence[float],
+    corpus_vectors: Sequence[Sequence[float]],
+) -> list[float]:
+    """Return one cosine score per corpus vector, handling zero vectors safely."""
+    query_norm = math.sqrt(sum(value * value for value in query_vector))
+    scores: list[float] = []
 
-    dot = sum(a * b for a, b in zip(left, right))
-    left_norm = math.sqrt(sum(value * value for value in left))
-    right_norm = math.sqrt(sum(value * value for value in right))
-    if left_norm == 0.0 or right_norm == 0.0:
-        return 0.0
-    return dot / (left_norm * right_norm)
+    for corpus_vector in corpus_vectors:
+        if len(query_vector) != len(corpus_vector):
+            raise ValueError("vectors must have equal dimensions")
+
+        corpus_norm = math.sqrt(sum(value * value for value in corpus_vector))
+        denominator = query_norm * corpus_norm
+        if denominator == 0.0:
+            scores.append(0.0)
+            continue
+
+        dot_product = sum(
+            query_value * corpus_value
+            for query_value, corpus_value in zip(query_vector, corpus_vector)
+        )
+        scores.append(dot_product / denominator)
+
+    return scores
+
+
+def stable_top_k(scores: Sequence[float], post_ids: Sequence[int], k: int) -> list[int]:
+    """Return indices ordered by score descending, then post ID ascending."""
+    if len(scores) != len(post_ids):
+        raise ValueError("scores and post_ids must have equal lengths")
+    if k < 1:
+        raise ValueError("k must be positive")
+
+    indices = list(range(len(scores)))
+    indices.sort(key=lambda index: (-scores[index], post_ids[index]))
+    return indices[:k]
 
 
 def retrieve_top(
@@ -42,14 +69,22 @@ def retrieve_top(
     if limit < 1:
         raise ValueError("limit must be positive")
 
-    results = [
+    scores = cosine_similarity(
+        query_vector,
+        [candidate.vector for candidate in candidates],
+    )
+    top_k_indices = stable_top_k(
+        scores,
+        [candidate.post_id for candidate in candidates],
+        limit,
+    )
+
+    return [
         RetrievalResult(
-            post_id=candidate.post_id,
-            user_id=candidate.user_id,
-            content=candidate.content,
-            score=_cosine_similarity(query_vector, candidate.vector),
+            post_id=candidates[index].post_id,
+            user_id=candidates[index].user_id,
+            content=candidates[index].content,
+            score=float(scores[index]),
         )
-        for candidate in candidates
+        for index in top_k_indices
     ]
-    results.sort(key=lambda result: (-result.score, result.post_id))
-    return results[:limit]
