@@ -40,6 +40,51 @@ Results contain at most `limit` posts and are ordered by descending
 - `422 Unprocessable Entity`: `limit` is less than `1`, greater than `20`, or
   is not an integer.
 
+## Feed
+
+**Endpoint:** `GET /feed?user_id=<int>&limit=<1..50>&strategy=for_you|chronological`
+
+The feed considers posts by authors followed by `user_id`, excluding the user's
+own posts and posts already liked by that user. A user who follows nobody gets
+an empty list.
+
+### Request
+
+- `user_id` — required integer identifying an existing user.
+- `limit` — optional integer from `1` through `50`; defaults to `20`.
+- `strategy` — optional `for_you` or `chronological`; defaults to `for_you`.
+
+### Successful response
+
+**Status:** `200 OK`
+
+```json
+{
+  "user_id": 1,
+  "strategy": "for_you",
+  "posts": [
+    {
+      "post_id": 8,
+      "user_id": 3,
+      "content": "sharing a practical SQLite testing tip today",
+      "created_at": "2026-10-26T17:00:00",
+      "score": 1.742
+    }
+  ]
+}
+```
+
+`for_you` combines normalized freshness, follow affinity, and popularity with
+weights `0.7`, `1.3`, and `0.8`, respectively. Results are ordered by
+descending score and then ascending `post_id`. `chronological` omits `score`
+and orders by descending `created_at` and then ascending `post_id`.
+
+### Validation and error cases
+
+- `404 Not Found`: `user_id` does not identify an existing user.
+- `422 Unprocessable Entity`: `user_id` is missing, `limit` is outside `1..50`,
+  or `strategy` is unknown.
+
 ## Create a post
 
 **Future endpoint:** `POST /posts`

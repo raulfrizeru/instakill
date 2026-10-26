@@ -9,7 +9,11 @@ POSTS = [
     (3, "spam spam spam buy now click here"),
     (4, "benchmarking my ranker against popularity baseline today"),
     (5, "red-team week is going to be brutal, good luck everyone"),
+    (2, "the new feed should balance relevance and freshness"),
+    (3, "sharing a practical SQLite testing tip today"),
 ]
+FOLLOWS = [(1, 2), (1, 3), (2, 1), (2, 4), (3, 1), (4, 2), (5, 3)]
+LIKES = [(1, 3), (2, 1), (2, 4), (3, 1), (3, 5), (4, 2), (5, 3)]
 
 
 def seed() -> None:
@@ -23,8 +27,21 @@ def seed() -> None:
             conn.execute(
                 "INSERT INTO post (user_id, content) VALUES (?, ?)", (user_id, content)
             )
+        for follower_id, followed_id in FOLLOWS:
+            conn.execute(
+                "INSERT OR IGNORE INTO follow (follower_id, followed_id) VALUES (?, ?)",
+                (follower_id, followed_id),
+            )
+        for user_id, post_id in LIKES:
+            conn.execute(
+                "INSERT OR IGNORE INTO like (user_id, post_id) VALUES (?, ?)",
+                (user_id, post_id),
+            )
         conn.commit()
-    print(f"Seeded {len(USERS)} users and {len(POSTS)} posts.")
+    print(
+        f"Seeded {len(USERS)} users, {len(POSTS)} posts, "
+        f"{len(FOLLOWS)} follows, and {len(LIKES)} likes."
+    )
 
 
 if __name__ == "__main__":
