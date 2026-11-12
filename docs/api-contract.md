@@ -42,7 +42,7 @@ Results contain at most `limit` posts and are ordered by descending
 
 ## Feed
 
-**Endpoint:** `GET /feed?user_id=<int>&limit=<1..50>&strategy=for_you|chronological`
+**Endpoint:** `GET /feed?user_id=<int>&limit=<1..50>&strategy=for_you|chronological|learned`
 
 The feed considers posts by authors followed by `user_id`, excluding the user's
 own posts and posts already liked by that user. A user who follows nobody gets
@@ -53,6 +53,7 @@ an empty list.
 - `user_id` — required integer identifying an existing user.
 - `limit` — optional integer from `1` through `50`; defaults to `20`.
 - `strategy` — optional `for_you` or `chronological`; defaults to `for_you`.
+  `learned` uses the exported Week 5 NumPy MLP scorer.
 
 ### Successful response
 
@@ -76,8 +77,9 @@ an empty list.
 
 `for_you` combines normalized freshness, follow affinity, and popularity with
 weights `0.7`, `1.3`, and `0.8`, respectively. Results are ordered by
-descending score and then ascending `post_id`. `chronological` omits `score`
-and orders by descending `created_at` and then ascending `post_id`.
+descending score and then ascending `post_id`. `chronological` omits `score` and orders by descending `created_at` and then
+ascending `post_id`. `learned` returns the MLP's predicted like probability as
+`score`, with the same deterministic `post_id` tie-breaker.
 
 ### Validation and error cases
 

@@ -10,6 +10,8 @@ from app.search.encoder import HashingTextEncoder
 from app.services.search import SearchService
 from app.repositories.feed import FeedRepository
 from app.services.feed import FeedService
+from app.feed.learned import LikeModel
+from pathlib import Path
 
 
 @asynccontextmanager
@@ -17,7 +19,10 @@ async def lifespan(app: FastAPI):
     init_db()
     posts = PostRepository().list_posts()
     app.state.search_service = SearchService(posts, HashingTextEncoder())
-    app.state.feed_service = FeedService(FeedRepository())
+    model_path = Path(__file__).resolve().parent.parent / "like_model.npz"
+    app.state.feed_service = FeedService(
+        FeedRepository(), learned_model=LikeModel.load(model_path)
+    )
     yield
 
 

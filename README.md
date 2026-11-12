@@ -41,7 +41,7 @@ so it becomes searchable without requiring a process restart.
 
 ## Feed
 
-`GET /feed?user_id=<int>&limit=<1..50>&strategy=for_you|chronological`
+`GET /feed?user_id=<int>&limit=<1..50>&strategy=for_you|chronological|learned`
 returns posts from authors followed by the requested user. The user's own posts
 and posts they already liked are excluded. A user who follows nobody sees an
 empty feed (the cold-start policy for this milestone). `limit` defaults to 20
@@ -63,6 +63,12 @@ For `C` candidate posts and requested limit `k`, one request is `O(C log k)`
 for scoring and heap-based top-k selection, plus the database aggregation
 needed to produce candidates. The first optimization to precompute would be
 per-post like counts and the global maximum popularity denominator.
+
+The `learned` strategy uses the exported Week 5 `like_model.npz` MLP. It
+consumes six normalized signals in the notebook's order: freshness, affinity,
+popularity, user activity, lifetime likes, and item age. Inference is NumPy
+only; no training or machine-learning library runs in the API process. The
+model file is loaded once during application startup.
 
 ## Milestones (see masterplan.md for full details)
 

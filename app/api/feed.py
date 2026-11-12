@@ -31,7 +31,7 @@ def feed(
     request: Request,
     user_id: int = Query(...),
     limit: int = Query(default=20, ge=1, le=50),
-    strategy: Literal["for_you", "chronological"] = Query(default="for_you"),
+    strategy: Literal["for_you", "chronological", "learned"] = Query(default="for_you"),
 ) -> FeedResponse:
     service: FeedService = request.app.state.feed_service
     try:
