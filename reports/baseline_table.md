@@ -5,8 +5,8 @@
 - Cut-off: `2026-10-20 00:00:00`
 - Bootstrap seed: `42`
 - Eligible users: `5`
-- Database SHA-256: `e3d8eb09b735c6235664cf9cf9f2c23795b25134eef8e632959fd2a3b903c51d`
-- Git commit: `9cff9b992dace879d09a1027069e5222014d1848`
+- Database SHA-256: `ddab9ee3a9163038bbd638afaa4ea5bf132f2b941e14bf97c54cb9fcd0f94dc4`
+- Git commit: `98397278e694759ed89347783f7bac7059ac6f8d`
 
 ## Strategy comparison
 
