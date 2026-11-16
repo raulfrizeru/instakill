@@ -216,10 +216,10 @@ def evaluate_database(
 
 def git_commit() -> str:
     try:
-        report = Path("reports/baseline_table.md")
-        revision = "HEAD^" if report.exists() else "HEAD"
         return subprocess.check_output(
-            ["git", "rev-parse", revision], text=True, stderr=subprocess.DEVNULL
+            ["git", "log", "-1", "--format=%H", "--", "scripts/evaluate.py"],
+            text=True,
+            stderr=subprocess.DEVNULL,
         ).strip()
     except (OSError, subprocess.CalledProcessError):
         return "unknown"
