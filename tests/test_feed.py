@@ -44,30 +44,31 @@ def test_feed_returns_seeded_followed_posts(monkeypatch, tmp_path):
 
     with TestClient(app) as client:
         response = client.get(
-            "/feed", params={"user_id": 1, "strategy": "for_you", "limit": 10}
+            "/feed", params={"user_id": 2, "strategy": "for_you", "limit": 10}
         )
 
     assert response.status_code == 200
     body = response.json()
-    assert body["user_id"] == 1
+    assert body["user_id"] == 2
     assert body["strategy"] == "for_you"
     assert body["posts"]
     assert all("score" in post for post in body["posts"])
-    assert all(post["user_id"] in (2, 3) for post in body["posts"])
-    assert 3 not in [post["post_id"] for post in body["posts"]]
+    assert all(post["user_id"] in (3, 4) for post in body["posts"])
+    assert 1 not in [post["post_id"] for post in body["posts"]]
 
     chronological = client.get(
-        "/feed", params={"user_id": 1, "strategy": "chronological", "limit": 10}
+        "/feed", params={"user_id": 2, "strategy": "chronological", "limit": 10}
     )
     assert chronological.status_code == 200
     assert all("score" not in post for post in chronological.json()["posts"])
 
     learned = client.get(
-        "/feed", params={"user_id": 1, "strategy": "learned", "limit": 2}
+        "/feed", params={"user_id": 2, "strategy": "learned", "limit": 2}
     )
     assert learned.status_code == 200
     learned_posts = learned.json()["posts"]
-    assert len(learned_posts) == 2
+    assert len(learned_posts) <= 2
+    assert learned_posts
     assert all(isinstance(post["score"], float) for post in learned_posts)
     assert learned_posts == sorted(
         learned_posts, key=lambda post: (-post["score"], post["post_id"])

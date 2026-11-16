@@ -4,6 +4,15 @@ from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent.parent.parent / "instakill.db"
 
+
+class ClosingConnection(sqlite3.Connection):
+    def __exit__(self, exc_type, exc_value, traceback):
+        try:
+            return super().__exit__(exc_type, exc_value, traceback)
+        finally:
+            self.close()
+
+
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -21,6 +30,7 @@ CREATE TABLE IF NOT EXISTS post (
 CREATE TABLE IF NOT EXISTS follow (
     follower_id INTEGER NOT NULL REFERENCES user(id),
     followed_id INTEGER NOT NULL REFERENCES user(id),
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
     PRIMARY KEY (follower_id, followed_id),
     CHECK (follower_id <> followed_id)
 );
@@ -35,7 +45,7 @@ CREATE TABLE IF NOT EXISTS like (
 
 
 def get_connection() -> sqlite3.Connection:
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, factory=ClosingConnection)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -43,6 +53,19 @@ def get_connection() -> sqlite3.Connection:
 def init_db() -> None:
     with get_connection() as conn:
         conn.executescript(SCHEMA)
+        columns = {
+            row["name"]
+            for row in conn.execute("PRAGMA table_info(follow)").fetchall()
+        }
+        if "created_at" not in columns:
+            conn.execute(
+                "ALTER TABLE follow ADD COLUMN created_at TEXT"
+            )
+            conn.execute(
+                "UPDATE follow SET created_at = datetime('now') "
+                "WHERE created_at IS NULL"
+            )
+        conn.commit()
 
 
 if __name__ == "__main__":

@@ -70,6 +70,23 @@ popularity, user activity, lifetime likes, and item age. Inference is NumPy
 only; no training or machine-learning library runs in the API process. The
 model file is loaded once during application startup.
 
+## Offline evaluation
+
+Week 7 adds a time-split replay evaluation without changing the feed
+strategies. After seeding the deterministic historical database, run:
+
+```bash
+pip install -e ".[eval]"
+python scripts/evaluate.py --db instakill.db --seed 42 --out reports
+```
+
+The script snapshots the database at the 80th percentile of like timestamps,
+calls the existing feed service at that cut-off, and writes
+`reports/eval_results.csv`, `reports/baseline_table.md`, and the self-contained
+`reports/dashboard.html`. The full protocol, metric, paired bootstrap
+intervals, slices, and limitations are documented in
+`docs/evaluation-protocol.md`.
+
 ## Milestones (see masterplan.md for full details)
 
 W1 Repo+API → W3 CRUD+DB → W4 Feed v0 → W7 Baseline+eval plan → W9 ML+pretrained feature → W11 Profile+optimize → W13 Feature freeze+E2E → W14 Red-team+Demo Day.

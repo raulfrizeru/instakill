@@ -66,6 +66,8 @@ class FeedService:
         if strategy == "learned":
             if self._learned_model is None:
                 raise RuntimeError("learned feed model is not configured")
+            if not rows:
+                return []
             model = self._learned_model
             max_recent = self._repository.max_recent_like_count(now)
             max_lifetime = self._repository.max_lifetime_like_count()
